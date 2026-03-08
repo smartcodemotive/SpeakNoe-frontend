@@ -1,0 +1,113 @@
+<div class="layout">
+  <header class="header">
+    <h1 class="page-title">Test</h1>
+  </header>
+
+  <div class="content">
+    <!-- Left Panel: Task Submission Form -->
+    <aside class="panel form-panel">
+      <div class="form-header">
+        <div class="form-icons">
+          <span class="icon" aria-hidden="true">&#x1F50A;</span>
+          <span class="icon" aria-hidden="true">&#x1F4CA;</span>
+          <span class="icon" aria-hidden="true">&#x1F5BC;</span>
+          <span class="icon" aria-hidden="true">&#x2699;</span>
+        </div>
+        <span class="form-label">Read aloud | Q1/3</span>
+      </div>
+
+      <section class="form-section">
+        <h2 class="section-heading">QUESTION:</h2>
+        <p class="question-text">{{ placeholderQuestion }}</p>
+      </section>
+
+      <section class="form-section">
+        <h2 class="section-heading">ANSWER:</h2>
+        <textarea
+          class="answer-input"
+          [(ngModel)]="answer"
+          placeholder="Enter your answer"
+          [maxlength]="maxAnswerLength"
+          rows="4"
+          [disabled]="submitting$ | async"
+        ></textarea>
+        <p class="character-count">{{ characterCount }}/{{ maxAnswerLength }}</p>
+        <button
+          class="submit-btn"
+          (click)="onSubmit()"
+          [disabled]="!answer.trim() || (submitting$ | async)"
+        >
+          Submit
+        </button>
+      </section>
+    </aside>
+
+    <!-- Right Panel: Task Status Dashboard -->
+    <main class="panel dashboard-panel">
+      @if ((loading$ | async) && (tasks$ | async)?.length === 0) {
+        <div class="loader-container">
+          <div class="spinner" role="status" aria-label="Loading"></div>
+          <p class="loader-text">Loading tasks...</p>
+        </div>
+      } @else {
+        <div class="dashboard-content">
+          <div class="dashboard-header">
+            <h2 class="dashboard-title">Task Status Dashboard</h2>
+            <button
+              class="refresh-btn"
+              (click)="refreshTasks()"
+              [disabled]="loading$ | async"
+              title="Refresh table"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6M1 20v-6h6"/>
+                <path d="M3.51 9a9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Refresh table
+            </button>
+          </div>
+
+          @if (submitting$ | async) {
+            <div class="loader-overlay">
+              <div class="spinner" role="status" aria-label="Processing"></div>
+              <p class="loader-text">Processing your submission...</p>
+            </div>
+          }
+
+          <div class="table-wrapper" [class.loading]="submitting$ | async">
+            <table class="tasks-table">
+              <thead>
+                <tr>
+                  <th>Task ID</th>
+                  <th>Answer</th>
+                  <th>Status</th>
+                  <th>Retries</th>
+                  <th>Error message</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if ((tasks$ | async)?.length === 0) {
+                  <tr>
+                    <td colspan="5" class="empty-cell">No tasks yet. Submit an answer to get started.</td>
+                  </tr>
+                } @else {
+                  @for (task of tasks$ | async; track task.taskId) {
+                    <tr>
+                      <td class="task-id">{{ task.taskId }}</td>
+                      <td>{{ task.answer }}</td>
+                      <td>
+                        <app-status-badge [status]="task.status" />
+                      </td>
+                      <td>{{ task.retries }}</td>
+                      <td>{{ task.errorMessage }}</td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>
